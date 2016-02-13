@@ -10,7 +10,7 @@ This gem was based on the [C++ RF24 library by tmrh20](https://github.com/TMRh20
 mostly because wrapping C++ from Ruby sucks donkey balls.  
 
 ## Installing
-We rely on the bcm2835 gem which wraps the [bcm2835 C library](http://www.airspayce.com/mikem/bcm2835). Therefore we need
+Currently there's only one hardware driver included, which relies on the bcm2835 gem that wraps the [bcm2835 C library](http://www.airspayce.com/mikem/bcm2835). Therefore we need
 this C lib installed on our system.
 
 Build the lib
@@ -27,9 +27,10 @@ Make the shared library (.so file) and copy into the correct location
     cd src
     gcc -shared -o libbcm2835.so bcm2835.o
     sudo cp libbcm2835.so /usr/local/lib
-    
+   
+_In case you don't feel like building the lib yourself, it's included in /binlib at your convenience._   
 
-**caveat** Currently we're calling directly into the BCM2835 protected memory space, so we need to run as root.
+**Caveat:** currently we're calling directly into the BCM2835's protected memory space, so we need to run as root.
 
 Add this line to your application's Gemfile:
 
@@ -73,14 +74,14 @@ NRF24.begin {
 
 }
 ``` 
-Or use the plain old class based approach
+Or use the plain old instance based approach
 
 ```ruby
 nrf = NRF24.new(channel: 0x4c)
 
 nrf.rf_setup :rate_250kbps, :max_power
 
-address = 'AAAAA'.unpack('c*')\
+address = 'AAAAA'.unpack('c*')
 nrf.open_reading_pipe 1, address
 
 nrf.start_listening
@@ -92,6 +93,6 @@ loop do
     p data
   end
 
-  sleep 0.1 # Currently interrupt handling is not supported in Raspberry Pi, so we need to poll for new data
+  sleep 0.1 # Currently interrupt handling is not supported on Raspberry Pi, so we need to poll for new data
 end
 ```
