@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'nrf24/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "nrf24-ruby"
+  spec.name          = "nrf24l01-ruby"
   spec.version       = NRF24::VERSION
   spec.authors       = ["Rogier Lodewijks"]
   spec.email         = ["rogier@lodewijks.org"]
