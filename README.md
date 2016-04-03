@@ -1,3 +1,5 @@
+[![Gem Version](https://badge.fury.io/rb/nrf24l01-ruby.svg)](https://badge.fury.io/rb/nrf24l01-ruby)
+
 # nRF24 lib for Ruby
 
 nrf24-ruby is a pure Ruby library for controlling the ubiquitous nRF24l01(+) radio module. Currently primary target is
