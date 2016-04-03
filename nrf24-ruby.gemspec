@@ -20,5 +20,5 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib", "lib/nrf24"]
   
-  spec.add_dependency 'bcm2835'
+  spec.add_dependency 'bcm2835', '~> 0.0', '>= 0.0.1'
 end
