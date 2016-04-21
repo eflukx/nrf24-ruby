@@ -23,12 +23,12 @@ class NRF24
 
     set_register :rx_addr_p0, @pipe0_reading_address if @pipe0_reading_address # Restore address, as this could be overwritten during a PTX cycle (Pipe 0 is used for receiving auto-acks)
 
-    flush_tx if get_register(:feature)[EN_ACK_PAY] > 0
+    flush_tx if dynamic_ack_payload_enabled?
   end
 
   def stop_listening
     ce_low
-    flush_tx if get_register(:feature)[EN_ACK_PAY] > 0
+    flush_tx if dynamic_ack_payload_enabled?
     set_register :config, get_register(:config) & inv_bv(PRIM_RX)
     set_register :en_rxaddr, get_register(:en_rxaddr) | 1
   end
@@ -56,6 +56,7 @@ class NRF24
   def write_payload payload, type = :ack
     if dynamic_payload_enabled?
       raise OverSizedPayload if payload.size > 32
+      padding = 0
     else
       raise OverSizedPayload if payload.size > static_payload_size
       padding = static_payload_size - payload.size
@@ -166,6 +167,30 @@ class NRF24
 
   def dynamic_payload_enabled?
     get_register(:feature)[EN_DPL] > 0
+  end
+
+  def enable_dynamic_ack
+    set_register :feature, get_register(:feature) | bv(EN_DYN_ACK)
+  end
+
+  def disable_dynamic_ack
+    set_register :feature, get_register(:feature) & inv_bv(EN_DYN_ACK)
+  end
+
+  def dynamic_ack_enabled?
+    get_register(:feature)[EN_DYN_ACK] > 0
+  end
+
+  def enable_ack_payload
+    set_register :feature, get_register(:feature) | bv(EN_ACK_PAY)
+  end
+
+  def disable_ack_payload
+    set_register :feature, get_register(:feature) & inv_bv(EN_ACK_PAY)
+  end
+
+  def dynamic_ack_payload_enabled?
+    get_register(:feature)[EN_ACK_PAY] > 0
   end
 
   def power_up
@@ -304,7 +329,6 @@ class NRF24
 
   def fifo_flags
     flags = []
-    fifo_status = get_register(:fifo_status)
 
     flags << :tx_full if fifo_tx_full?
     flags << :tx_empty if fifo_tx_empty?
@@ -314,12 +338,34 @@ class NRF24
     flags
   end
 
-  def received_power
-    get_register(:rpd)
+  def rx_dr?
+    status[RX_DR] > 0
+  end
+
+  def tx_ds?
+    status[TX_DS] > 0
+  end
+
+  def max_rt?
+    status[MAX_RT] > 0
+  end
+
+  def interruptq_flags
+    flags = []
+
+    flags << :rx_dr if rx_dr?
+    flags << :rx_dr if tx_ds?
+    flags << :rx_dr if max_rt?
+
+    flags
   end
 
   def clear_interrupt_flags
     set_register :nrf_status, (1 << RX_DR) | (1 << TX_DS) | (1 << MAX_RT)
+  end
+
+  def received_power
+    get_register(:rpd)
   end
 
   def activate
@@ -352,7 +398,11 @@ class NRF24
     command = COMMANDS[command] unless command.is_a? Numeric
     with_csn {
       spi.write command
-      spi.read(data_len) if data_len > 0
+      if data_len == 1
+        spi.read
+      elsif data_len > 1
+        spi.read(data_len)
+      end
     }
   end
 
