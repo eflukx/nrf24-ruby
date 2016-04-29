@@ -303,7 +303,7 @@ class NRF24
 
   def reuse_tx_payload
     set_register :nrf_status, bv(MAX_RT)
-    send_commnad :reuse_tx_pl
+    send_command :reuse_tx_pl
     pulse_ce
   end
 
@@ -350,12 +350,12 @@ class NRF24
     status[MAX_RT] > 0
   end
 
-  def interruptq_flags
+  def interrupt_flags
     flags = []
 
     flags << :rx_dr if rx_dr?
-    flags << :rx_dr if tx_ds?
-    flags << :rx_dr if max_rt?
+    flags << :tx_ds if tx_ds?
+    flags << :max_rt if max_rt?
 
     flags
   end
@@ -408,8 +408,18 @@ class NRF24
 
   def print_regs
     REGS.each do |i, v|
-      len = [:rx_addr_p0, :rx_addr_p1, :tx_addr].include?(i) ? address_width : 1
-      puts "register #{v.to_s(16).rjust(2, "0")} (#{i}): #{get_register i, len}"
+      reg_width = [:rx_addr_p0, :rx_addr_p1, :tx_addr].include?(i) ? address_width : 1
+      reg_value = get_register i, reg_width
+
+      hex_value = -> (val) {
+        if val.is_a? Enumerable
+          val.map { |v| v.to_s(16).rjust(2, "0") }.join ', '
+        else
+          val.to_s(16).rjust(2, "0")
+        end
+      }
+
+      puts "register #{hex_value.(v)} (#{i}): #{reg_value} (#{hex_value.(reg_value)})"
     end
   end
 

@@ -1,5 +1,7 @@
 class NRF24
 
+  MAX_PAYLOAD_SIZE = 32
+
   COMMANDS = {
       :r_register => 0x00,
       :w_register => 0x20,
@@ -23,7 +25,7 @@ class NRF24
       :setup_retr => 0x04, # Setup of Automatic Retransmission
       :rf_ch => 0x05, # RF Channel
       :rf_setup => 0x06, # RF Setup Register (power, rate)
-      :nrf_status => 0x07, # a.k.a. nrf24l01.rbStatus
+      :nrf_status => 0x07, # a.k.a. Status
       :status => 0x07,
       :observe_tx => 0x08, # Transmit observe register (packets lost, retransmits)
       :cd => 0x09, # Legacy (nRF24l01 non+) name
@@ -94,6 +96,6 @@ class NRF24
   RF_PWR_HIGH = 2
   LNA_HCURR = 0
 
-   REGISTER_MASK = 0x1F
+  REGISTER_MASK = 0x1F
 
 end
